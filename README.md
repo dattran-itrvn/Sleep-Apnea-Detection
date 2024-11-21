@@ -55,6 +55,5 @@ Before downloading the dataset, ensure the following requirements are met [nsrr 
 3. **Downloading the Dataset**:
 
     ```bash
-    nsrr configure --token <your-api-key>
     nsrr download shhs
     ```
