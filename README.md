@@ -92,4 +92,11 @@ nvidia-smi \[-l 1\] # to view GPU usage (avoid OOM)
 nnictl stop --all # to stop
 ```
 
+## Normal training
 
+Simply run:
+
+```bash
+cd training
+python train.py -train ../train.tfrecord -val ../val.tfrecord -cp path_to_cp (*).keras # must be anything != nni.keras
+```
