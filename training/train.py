@@ -139,7 +139,7 @@ def train_model(params, train_path, val_path, checkpoint_path, using_nni=False):
 
     # Calculate ROCAUC
     y_true = np.vstack(y_true)
-    y_pred = np.vstack(y_pred)[:, 1]
+    y_pred = np.vstack(y_pred)
     roc_auc = roc_auc_score(y_true, y_pred)
 
     # Report the ROCAUC back to NNI
