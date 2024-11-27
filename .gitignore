@@ -1,2 +1,5 @@
 .venv/
 shhs/
+**.npy
+**.keras
+**__pycache__**

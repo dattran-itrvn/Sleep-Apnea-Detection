@@ -20,23 +20,27 @@ keras.saving.get_custom_objects().clear()
 
 @keras.saving.register_keras_serializable()
 class LeNetLike(keras.Model):
-    def __init__(self, kernel_size, filters, pool_size, dropout_rate,
+    def __init__(self, kernel_size, filters, pool_size, activation_type=None, dropout_rate=0.2,
                  **kwargs):
         super(LeNetLike, self).__init__(**kwargs)
-        
+        print(activation_type)
         self.kernel_size = kernel_size
         self.filters = filters
         self.pool_size = pool_size
+        self.activation_type = activation_type
         self.dropout_rate = dropout_rate
         
         self.conv1 = keras.layers.Conv1D(filters=4 * filters,
                                          kernel_size=kernel_size, 
                                          strides=2,
-                                         padding='same')
+                                         padding='same',
+                                         activation=activation_type)
         self.conv2 = keras.layers.Conv1D(filters=4 * filters,
-                                    kernel_size=kernel_size, padding='same')
+                                    kernel_size=kernel_size, padding='same',
+                                    activation=activation_type)
         self.conv3 = keras.layers.Conv1D(filters=filters,
-                            kernel_size=kernel_size, padding='same')
+                            kernel_size=kernel_size, padding='same',
+                            activation=activation_type)
         
         self.dropout1 = keras.layers.SpatialDropout1D(2 * dropout_rate)
         self.dropout2 = keras.layers.SpatialDropout1D(dropout_rate)
@@ -73,6 +77,7 @@ class LeNetLike(keras.Model):
             'kernel_size': self.kernel_size,
             'filters': self.filters,
             'pool_size': self.pool_size,
+            'activation_type': self.activation_type,
             'dropout_rate': self.dropout_rate,
         })
         return config
@@ -83,7 +88,6 @@ class LeNetLike(keras.Model):
 
 @keras.saving.register_keras_serializable()
 def customized_loss(true, pred):
-    # true = keras.utils.to_categorical(true, num_classes=2)
     losss = LOSS_FUNCTION(true, pred)
     # save for debugging
     np.save("debug/true_pred.npy", np.hstack([true.numpy(), pred.numpy()]))
