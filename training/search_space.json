@@ -3,7 +3,7 @@
         "_type": "uniform",
         "_value": [0.0001, 0.01]
     },
-    "batch_size": {"_type": "choice", "_value": [64, 128, 256, 512, 1024]},
+    "batch_size": {"_type": "choice", "_value": [64, 128, 256, 512]},
     "num_epochs": {"_type": "choice", "_value": [5]},
     "activation_type": {"_type": "choice", "_value": ["relu", "tanh", "swish", "sigmoid", null]}
 }

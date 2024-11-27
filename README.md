@@ -57,3 +57,39 @@ Before downloading the dataset, ensure the following requirements are met [nsrr 
     ```bash
     nsrr download shhs
     ```
+
+
+## Data preparation
+
+Simply run the `prepare_data.ipynb` file. Remember to modify these at the Setup section:
+
+- `BASE_DB_PATH`: path to your "../shhs/polysomnography" dataset (must go directly into the "polysomnography" folder)
+- `TO_PATH`: path to save results (should contains: "train.tfrecord", "val.tfrecord", "test.tfrecord" after)
+
+## Hyperparameter tuning
+
+To change config, modify the `training/config.yml` file. ([nni docs](https://nni.readthedocs.io/en/stable/)).
+
+And `training/search_space.json` for other parameter options.
+
+**Note:** remember to change the paths at this command that are suitable for your computer: 
+
+```bash
+trialCommand: python train.py -train ../train.tfrecord -val ../val.tfrecord -cp nni.keras # don't modify the nni.keras
+```
+
+```bash
+cd training
+nnictl create --config config.yml # to start tuning
+```
+
+```bash
+nvidia-smi \[-l 1\] # to view GPU usage (avoid OOM)
+```
+
+
+```bash
+nnictl stop --all # to stop
+```
+
+
