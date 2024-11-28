@@ -57,7 +57,8 @@ class LeNetLike(keras.Model):
         self.dense1 = keras.layers.Dense(8 * filters, activation=dense_activation)
         self.dense2 = keras.layers.Dense(filters, activation=dense_activation)
         
-        self.classify = keras.layers.Dense(2, activation='softmax')
+        # self.classify = keras.layers.Dense(2, activation='softmax') # if use categorical
+        self.classify = keras.layers.Dense(1, activation='sigmoid')
         
     def call(self, inputs, training=False):
         x = self.conv1(inputs)

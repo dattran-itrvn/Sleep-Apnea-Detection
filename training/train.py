@@ -26,7 +26,7 @@ def parse_tfrecord_fn(example):
     
     X_ext = tf.reshape(parsed_example['ext'], (WINDOW_SIZE, N_CHANNELS))
     y = parsed_example['label']
-    y = tf.one_hot(y[0], depth=2)
+    # y = tf.one_hot(y[0], depth=2) # if use categorical
     return X_ext, y
 
 def load_tfrecord_dataset(tfrecord_file, batch_size, shuffle=True, cache_in_memory=False, cache_file=None):
@@ -67,7 +67,7 @@ def train_model(params, train_path, val_path, checkpoint_path, using_nni=False):
     else:
         learning_rate =  0.003
         batch_size =  1024
-        num_epochs =  10
+        num_epochs =  1
         conv_activation =  "tanh"
         dense_activation = None
     
@@ -87,7 +87,7 @@ def train_model(params, train_path, val_path, checkpoint_path, using_nni=False):
     model.compile(
         loss=LOSS_FUNCTION, # customized_loss,
         optimizer=keras.optimizers.Adam(learning_rate=learning_rate),
-        metrics=[keras.metrics.CategoricalAccuracy()], # keras.metrics.BinaryAccuracy()], # [customized_acc],
+        metrics=[keras.metrics.BinaryAccuracy(threshold=0.5), keras.metrics.F1Score(threshold=0.5)], # just for training monitoring, best threshold will be optimized later
         run_eagerly=True
     )
 
@@ -138,7 +138,7 @@ def train_model(params, train_path, val_path, checkpoint_path, using_nni=False):
 
     for X, y in val_dataset:
         y_true.append(y.numpy())
-        y_pred.append(model.predict(X, verbose=False))  # Take the probability for class 1
+        y_pred.append(model.predict(X, verbose=False))
 
     # Calculate ROCAUC
     y_true = np.vstack(y_true)
