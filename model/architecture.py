@@ -35,12 +35,16 @@ class LeNetLike(keras.Model):
                                          strides=2,
                                          padding='same',
                                          activation=activation_type)
+        
         self.conv2 = keras.layers.Conv1D(filters=4 * filters,
-                                    kernel_size=kernel_size, padding='same',
-                                    activation=activation_type)
+                                         kernel_size=kernel_size,
+                                         padding='same',
+                                         activation=activation_type)
+        
         self.conv3 = keras.layers.Conv1D(filters=filters,
-                            kernel_size=kernel_size, padding='same',
-                            activation=activation_type)
+                                         kernel_size=kernel_size,
+                                         padding='same',
+                                         activation=activation_type)
         
         self.dropout1 = keras.layers.SpatialDropout1D(2 * dropout_rate)
         self.dropout2 = keras.layers.SpatialDropout1D(dropout_rate)
@@ -61,6 +65,8 @@ class LeNetLike(keras.Model):
         x = self.conv2(x)
         x = self.pooling(x)
         x = self.dropout2(x, training=training)
+        
+        x = self.conv3(x)
         
         x = self.flatten(x)
         
