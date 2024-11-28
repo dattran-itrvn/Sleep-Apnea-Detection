@@ -62,17 +62,20 @@ def train_model(params, train_path, val_path, checkpoint_path, using_nni=False):
         learning_rate = params['learning_rate'] 
         batch_size = params['batch_size']
         num_epochs = params['num_epochs']
-        activation_type = params['activation_type']
+        conv_activation = params['conv_activation']
+        dense_activation = params['dense_activation']
     else:
-        learning_rate =  0.01
+        learning_rate =  0.003
         batch_size =  1024
-        num_epochs =  1
-        activation_type =  None
+        num_epochs =  10
+        conv_activation =  "tanh"
+        dense_activation = None
     
     model = LeNetLike(kernel_size=K,
                       filters=N,
                       pool_size=M,
-                      activation_type=activation_type,
+                      conv_activation=conv_activation,
+                      dense_activation=dense_activation,
                       dropout_rate=P)
 
     # Print model configuration

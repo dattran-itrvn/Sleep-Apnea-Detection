@@ -3,7 +3,8 @@
         "_type": "uniform",
         "_value": [0.0001, 0.01]
     },
-    "batch_size": {"_type": "choice", "_value": [64, 128, 256, 512, 1024]},
-    "num_epochs": {"_type": "choice", "_value": [5]},
-    "activation_type": {"_type": "choice", "_value": ["relu", "tanh", "swish", "sigmoid", null]}
+    "batch_size": {"_type": "choice", "_value": [512, 1024]},
+    "num_epochs": {"_type": "choice", "_value": [3]},
+    "conv_activation": {"_type": "choice", "_value": ["relu", "leaky_relu", "tanh", "gelu", "swish", "sigmoid", "linear"]},
+    "dense_activation": {"_type": "choice", "_value": ["relu", "leaky_relu", "tanh", "gelu", "swish", "sigmoid", "linear"]}
 }

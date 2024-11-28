@@ -1,6 +1,6 @@
 experimentName: tensorflow_hyperopt
 trialConcurrency: 1
-maxTrialNumber: 50
+maxTrialNumber: 100
 searchSpaceFile: search_space.json
 tuner:
   name: TPE
