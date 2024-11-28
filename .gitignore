@@ -3,3 +3,4 @@ shhs/
 **.npy
 **.keras
 **__pycache__**
+training/trials.json
