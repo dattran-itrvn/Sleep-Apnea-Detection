@@ -98,5 +98,15 @@ Simply run:
 
 ```bash
 cd training
-python train.py -train ../train.tfrecord -val ../val.tfrecord -cp path_to_cp (*).keras # must be anything != nni.keras
+python train.py -train <../train.tfrecord> -val <../val.tfrecord> -cp <path_to_cp (*).keras> # must be anything != nni.keras
 ```
+
+## Multiple training for multiple train/test split
+
+```bash
+cd training
+python train.py -cp <path_to_cp (*).keras> -record <path to folder contains records: *.tfrecord> -split <split times (default: 25)\
+-dataset1 <Dataset of shhs1 (**/shhs1-dataset-0.21.0.csv) for stratify split on AHI> -dataset2 <same as dataset1>> # must be anything != nni.keras
+```
+
+This will create n (splits) checkpoints of format <(*)_state.keras> for each train/test split. 
