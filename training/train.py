@@ -61,7 +61,7 @@ def load_tfrecord_dataset(tfrecord_file, batch_size, shuffle=True, cache_in_memo
     return dataset, dataset_size
 
 
-def train_model(params, train_path, val_path, checkpoint_path, using_nni=False):
+def train_model(params, train_path, val_path, checkpoint_path, using_nni=False, first=True):
     if using_nni:
         learning_rate = params['learning_rate'] 
         batch_size = params['batch_size']
@@ -86,7 +86,7 @@ def train_model(params, train_path, val_path, checkpoint_path, using_nni=False):
 
     # Print model configuration
     
-    if not using_nni:
+    if not using_nni and first:
         print(model.get_config())
 
     # Compile model
@@ -97,18 +97,18 @@ def train_model(params, train_path, val_path, checkpoint_path, using_nni=False):
         run_eagerly=True
     )
 
-    if not using_nni:
+    if not using_nni and first:
         print(model.summary())
 
     # Load data
     train_dataset, train_size = load_tfrecord_dataset(train_path, batch_size=batch_size,
                                                     shuffle=True, cache_in_memory=False, cache_file=None)
-    if not using_nni:
+    if not using_nni and first:
         print(f"Training size: {train_size}")
     
     val_dataset, val_size = load_tfrecord_dataset(val_path, batch_size=batch_size, 
                                                 shuffle=False, cache_in_memory=False, cache_file=None)
-    if not using_nni:
+    if not using_nni and first:
         print(f"Validation size: {val_size}")
     
     selected_callbacks = [keras.callbacks.EarlyStopping(monitor='val_loss')]
@@ -223,6 +223,6 @@ if __name__ == "__main__":
             checkpoint_path = args.checkpoint
             checkpoint_path = checkpoint_path.replace(".keras", f"_{state}.keras")
             print(f"========================================================== Training state {state} ({i + 1}/{len(random_states)} split) ==========================================================")
-            train_model(params, train_records['Path'].tolist(), validation_records['Path'].tolist(), checkpoint_path, using_nni)
+            train_model(params, train_records['Path'].tolist(), validation_records['Path'].tolist(), checkpoint_path, using_nni, first=(i == 0))
     if not using_nni:
             print("-----------Completed-----------")
