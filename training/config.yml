@@ -1,6 +1,6 @@
 experimentName: tensorflow_hyperopt
 trialConcurrency: 1
-maxTrialNumber: 100
+maxTrialNumber: 50
 searchSpaceFile: search_space.json
 tuner:
   name: TPE
@@ -8,5 +8,5 @@ tuner:
     optimize_mode: maximize
 trainingService:
   platform: local
-  trialCommand: python train.py -train /mnt/dat/prepped/apnea_sp02_pr/train_sub.tfrecord -val /mnt/dat/prepped/apnea_sp02_pr/val_sub.tfrecord -cp nni.keras
+  trialCommand: python train.py -train /mnt/dat/prepped/apnea_sp02_pr/train.tfrecord -val /mnt/dat/prepped/apnea_sp02_pr/val.tfrecord -cp nni.keras
   trialCodeDirectory: .
