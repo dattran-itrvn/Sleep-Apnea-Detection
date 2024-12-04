@@ -210,10 +210,10 @@ if __name__ == "__main__":
         for i, state in enumerate(random_states):
             shhs2_records = all_record[all_record['Record'].str.startswith('shhs2')]
 
-            train_records, test_records = train_test_split(shhs2_records, test_size=0.3, 
+            # ignore test here
+            train_records, _ = train_test_split(shhs2_records, test_size=0.3, 
                                                             random_state=state, 
                                                             stratify=shhs2_records['ahi_label']) # should use AHI
-            test_records = pd.concat([test_records, all_record[all_record['Record'].str.startswith('shhs1')]])
 
             train_records, validation_records = train_test_split(train_records, test_size=0.2, 
                                                             random_state=state, 
