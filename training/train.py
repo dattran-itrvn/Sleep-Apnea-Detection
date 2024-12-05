@@ -116,27 +116,43 @@ def train_model(params, train_path, val_path, checkpoint_path, using_nni=False, 
         # Setup checkpoint callback
         callback = keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_path,
-            verbose=1,
+            verbose=0,
             monitor='val_loss',
             mode='min',
             save_best_only=True
         )
         
-        last_cp_path = checkpoint_path.replace(".keras", "_last.keras")
-        last_callback = keras.callbacks.ModelCheckpoint(
-            filepath=last_cp_path,
-            verbose=0,
-        )
+        # last_cp_path = checkpoint_path.replace(".keras", "_last.keras")
+        # last_callback = keras.callbacks.ModelCheckpoint(
+        #     filepath=last_cp_path,
+        #     verbose=0,
+        # )
         
-        selected_callbacks += [callback, last_callback]
+        selected_callbacks += [callback] #, last_callback]
+    
+    class LastEpochVerboseCallback(tf.keras.callbacks.Callback):
+        def __init__(self):
+            super().__init__()
+            self.last_epoch_logs = None  # To store logs of the last epoch
+
+        def on_epoch_end(self, epoch, logs=None):
+            self.last_epoch_logs = (epoch + 1, logs)  # Save the last epoch's data
+
+        def on_train_end(self, logs=None):
+            if self.last_epoch_logs:
+                epoch, logs = self.last_epoch_logs
+                print(f"Epoch {epoch}")
+                for key, value in logs.items():
+                    print(f"{key}: {value:.4f}")
+    
     
     # Train model
     model.fit(
         train_dataset,
         epochs=num_epochs,
         validation_data=val_dataset,
-        callbacks=selected_callbacks,
-        verbose=not using_nni
+        callbacks=selected_callbacks + [LastEpochVerboseCallback()],
+        verbose=0
     )
     
     if using_nni:
@@ -157,14 +173,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train LeNet-like model for Sleep apnea detection using Sp02 and PR')
 
     # Add arguments
-    parser.add_argument('-train', '--train_file',  type=str, help='Training data path (should endswith *.tfrecord)')
-    parser.add_argument('-val', '--val_file',  type=str, help='Validation data path (should endswith *.tfrecord)')
+    parser.add_argument('-train', '--train_file',  type=str, help='Training data path (should endswith train.tfrecord)')
+    parser.add_argument('-val', '--val_file',  type=str, help='Validation data path (should endswith val.tfrecord)')
     parser.add_argument('-cp', '--checkpoint', type=str, help='Checkpoint path (*.keras), only use "nni.keras" when run with nni')
-    parser.add_argument('-record', '--by_records', type=str, default='', help='Should be a folder contains multiple record (*.tfrecord), will ignore train/val argument if use this')
-    parser.add_argument('-split', '--split_times', type=int, default=25, help='Number of training times for separate train/test split')
-    parser.add_argument('-dataset1', '--dataset1_path', type=str, help='Dataset of shhs1 (**/shhs1-dataset-0.21.0.csv) for stratify split on AHI')
-    parser.add_argument('-dataset2', '--dataset2_path', type=str, help='Dataset of shhs2 (**/shhs2-dataset-0.21.0.csv) for stratify split on AHI')
-    
+    parser.add_argument('--multiple', action='store_true', help='Specify if want to run multiple training on multiple pair of (train*.tfrecord and val*.tfrecord)')
 
     # Parse the arguments
     args = parser.parse_args()
@@ -178,51 +190,22 @@ if __name__ == "__main__":
     
     params = nni.get_next_parameter()
     
-    if args.by_records == '':
-        train_file = args.train_file
-        val_file = args.val_file
-        print("Train files: ", train_file)
-        print("Val files: ", val_file)
-        train_model(params, train_file, val_file, args.checkpoint, using_nni)
-    else:
-        # stratify split
-        shhs1_csv = pd.read_csv(args.dataset1_path, usecols=['nsrrid', 'pptid','ahi_a0h3a'])
-        shhs1_csv['nsrrid'] = "shhs1-" + shhs1_csv['nsrrid'].astype('str')
-        shhs2_csv = pd.read_csv(args.dataset2_path, usecols=['nsrrid', 'pptid','ahi_a0h3a'], encoding_errors='replace')
-        shhs2_csv['nsrrid'] = "shhs2-" + shhs2_csv['nsrrid'].astype('str')
+    train_files = [args.train_file]
+    val_files = [args.val_file]
+    if args.multiple:
+        train_files = glob.glob(args.train_file.replace(".tfrecord", "*.tfrecord"))
+        train_files = sorted(train_files)
+        val_files = glob.glob(args.val_file.replace(".tfrecord", "*.tfrecord"))
+        val_files = sorted(val_files)
+        
+    for i in range(len(train_files)):
+        train_file = train_files[i]
+        val_file = val_files[i]
+        part = train_file[train_file.rfind("/") + len("train_") + 1: train_file.rfind(".tfrecord")]
+        print(f"========================================================== Part {part} ({i + 1}/{len(train_files)}) ==========================================================")
+        
+        checkpoint_path = args.checkpoint.replace(".keras", f"_{part}.keras")
+        train_model(params, train_file, val_file, checkpoint_path, using_nni, first=(i==0))
 
-        csv_df = pd.concat([shhs1_csv, shhs2_csv], ignore_index=True)
-        csv_df.rename(columns={'nsrrid': 'Record'}, inplace=True)
-        
-        bins = [-float('inf'), 5, 15, 30, float('inf')]  # Define bins for ranges
-        labels = ['none', 'mild', 'moderate', 'severe']  # Corresponding labels
-
-        csv_df['ahi_label'] = pd.cut(csv_df['ahi_a0h3a'], bins=bins, labels=labels, right=False)
-        
-        all_record = glob.glob(os.path.join(args.by_records, "*.tfrecord"))
-        all_record = pd.DataFrame({"Record": [name[name.rfind("/")+1:name.rfind(".tfrecord")] for name in all_record],
-                                   "Path": all_record})
-        all_record = pd.merge(all_record, csv_df, how='left', on='Record')
-        
-        
-        random_states = random.sample(range(1, 1000+1), args.split_times) # generate n states
-        
-        for i, state in enumerate(random_states):
-            shhs2_records = all_record[all_record['Record'].str.startswith('shhs2')]
-
-            # ignore test here
-            train_records, _ = train_test_split(shhs2_records, test_size=0.3, 
-                                                            random_state=state, 
-                                                            stratify=shhs2_records['ahi_label']) # should use AHI
-
-            train_records, validation_records = train_test_split(train_records, test_size=0.2, 
-                                                            random_state=state, 
-                                                            stratify=train_records['ahi_label']) # should use AHI
-            
-            
-            checkpoint_path = args.checkpoint
-            checkpoint_path = checkpoint_path.replace(".keras", f"_{state}.keras")
-            print(f"========================================================== Training state {state} ({i + 1}/{len(random_states)} split) ==========================================================")
-            train_model(params, train_records['Path'].tolist(), validation_records['Path'].tolist(), checkpoint_path, using_nni, first=(i == 0))
     if not using_nni:
             print("-----------Completed-----------")
