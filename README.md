@@ -113,7 +113,7 @@ This will create n (splits) checkpoints of format <(*)_state.keras> for each tra
 
 ## Results
 
-**Results of multiple train/test splits:** (the standard deviations across 25 splits are just about 1% in most case).
+**Results of multiple train/test splits**: (the standard deviations across 25 splits are just about 1% in most case).
 ![alt text](images/multiple_split.png)
 
 **Singple split**: (random state: 255). The optimal threshold is chosen by maximizing the geometric mean between sensitivity and specifictiy (just like the paper).
@@ -122,3 +122,7 @@ This will create n (splits) checkpoints of format <(*)_state.keras> for each tra
 
 **Paper result**:
 ![alt text](images/paper_single.png)
+
+**With balanced bootstrapping**:
+
+![alt text](images/bootstrap.png)
